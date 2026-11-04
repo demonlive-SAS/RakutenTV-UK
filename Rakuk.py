@@ -26,6 +26,9 @@ TIMEZONE           = pytz.timezone("Europe/London")
 DT_FORMAT          = "%Y%m%d%H%M%S %z"
 GAP_THRESHOLD_SECS = 60
 
+# Every channel in the playlist is placed in this group.
+GROUP_TITLE        = "Fast RakutenTV UK"
+
 RETRY_ATTEMPTS     = 4
 RETRY_BACKOFF_SECS = 20
 
@@ -133,13 +136,11 @@ def fetch_m3u(url: str):
     while i < len(lines):
         line = lines[i].strip()
         if line.startswith("#EXTINF"):
-            tvg_id_m   = re.search(r'tvg-id="([^"]*)"',      line)
-            tvg_logo_m = re.search(r'tvg-logo="([^"]*)"',    line)
-            group_m    = re.search(r'group-title="([^"]*)"', line)
+            tvg_id_m   = re.search(r'tvg-id="([^"]*)"',   line)
+            tvg_logo_m = re.search(r'tvg-logo="([^"]*)"', line)
 
             tvg_id   = tvg_id_m.group(1)   if tvg_id_m   else ""
             tvg_logo = tvg_logo_m.group(1) if tvg_logo_m else ""
-            group    = group_m.group(1)    if group_m    else "RakutenTV UK"
 
             display_name = line.rsplit(",", 1)[-1].strip()
 
@@ -155,7 +156,7 @@ def fetch_m3u(url: str):
             entry = {
                 "tvg_id":   tvg_id,
                 "tvg_logo": tvg_logo,
-                "group":    group,
+                "group":    GROUP_TITLE,
                 "name":     display_name,
                 "url":      stream_url,
             }
@@ -185,7 +186,7 @@ def match_m3u(ch_name: str, ch_id: str, by_name: dict, by_slug: dict):
     return None
 
 
-# ── XMLTV / M3U builders (unchanged) ──────────────────────────────────────────
+# ── XMLTV / M3U builders ──────────────────────────────────────────────────────
 
 def build_xmltv(channels: list, programmes: list) -> bytes:
     root = etree.Element("tv")
@@ -251,12 +252,11 @@ def build_m3u(channels: list) -> str:
 
         tvg_id   = ch.get("tvg_id")   or ch["id"]
         tvg_logo = ch.get("tvg_logo") or ch.get("icon") or ""
-        group    = ch.get("group")    or "RakutenTV UK"
 
         lines.append(
             f'#EXTINF:-1 tvg-id="{tvg_id}" '
             f'tvg-logo="{tvg_logo}" '
-            f'group-title="{group}",{ch["name"]}'
+            f'group-title="{GROUP_TITLE}",{ch["name"]}'
         )
         lines.append(url)
         matched += 1
@@ -399,7 +399,7 @@ def main():
             "stream_url": m3u["url"] if m3u else None,
             "tvg_id":     ch_id,
             "tvg_logo":   m3u["tvg_logo"] if m3u else ch_icon,
-            "group":      m3u["group"]    if m3u else "RakutenTV UK",
+            "group":      GROUP_TITLE,
         })
 
         for item in channel.get("live_programs", []):
