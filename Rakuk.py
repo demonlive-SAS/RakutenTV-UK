@@ -236,7 +236,7 @@ def build_xmltv(channels: list, programmes: list) -> bytes:
     return etree.tostring(root, pretty_print=True, encoding="utf-8")
 
 
-EPG_URL = "https://raw.githubusercontent.com/BuddyChewChew/RakutenTV/main/epg.xml"
+EPG_URL = "https://github.com/demonlive-SAS/RakutenTV-UK/raw/refs/heads/main/epg.xml"
 
 
 def build_m3u(channels: list) -> str:
