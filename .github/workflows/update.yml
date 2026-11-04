@@ -22,13 +22,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.15"
 
       - name: Install dependencies
         run: pip install requests lxml pytz
 
       - name: Generate EPG and playlist
-        run: python generate.py
+        run: python Rakuk.py
 
       - name: Commit and push updated files
         run: |
