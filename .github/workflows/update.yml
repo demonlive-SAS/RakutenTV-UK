@@ -1,0 +1,42 @@
+name: Update Rakuten TV EPG & Playlist
+
+on:
+  schedule:
+    # Every 4 hours starting at 9:00 PM CST (UTC-6) = 03:00 UTC
+    # Runs at 03:00, 07:00, 11:00, 15:00, 19:00, 23:00 UTC
+    # (9pm, 1am, 5am, 9am, 1pm, 5pm CST)
+    - cron: "0 3,7,11,15,19,23 * * *"
+  workflow_dispatch:   # allow manual trigger from the Actions tab
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push the updated files back
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.15"
+
+      - name: Install dependencies
+        run: pip install requests lxml pytz
+
+      - name: Generate EPG and playlist
+        run: python Rakuk.py
+
+      - name: Commit and push updated files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add epg.xml playlist.m3u .m3u_source_hash
+          # Only commit if something actually changed
+          git diff --cached --quiet || git commit -m "chore: update EPG and playlist [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
